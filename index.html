@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wolfflix Homework - One Piece: Set Sail</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- React & ReactDOM (Production) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Bebas+Neue&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #020617;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-bebas { font-family: 'Bebas Neue', cursive; }
+
+        /* Animations */
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pop { 0% { transform: scale(0.95); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        
+        .animate-slideIn { animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-pop { animation: pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-shake { animation: shake 0.4s ease-in-out forwards; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+
+        /* Hide scrollbar for mobile feel */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+</head>
+<body class="text-white flex justify-center items-center min-h-[100dvh]">
+
+    <div id="root" class="w-full h-full max-w-md bg-[#0f172a] relative overflow-hidden sm:h-[850px] sm:rounded-[40px] sm:border-8 sm:border-[#1e293b] sm:shadow-2xl flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- CONSTANTS ---
+        const YOUTUBE_ID = "Ades3pQbeh8";
+        const BG_OCEAN = "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?q=80&w=1000&auto=format&fit=crop";
+
+        // --- COMPONENTS ---
+        const Icon = ({ name, size = 20, className = "" }) => (
+            <i className={`fa-solid fa-${name} ${className}`} style={{ fontSize: size }}></i>
+        );
+
+        // --- DATA: 15 EXERCISES ---
+        const QUESTIONS = [
+            {
+                id: 1,
+                type: "vocab",
+                question: "What does 'Crew' mean?",
+                options: [
+                    "A dangerous sea monster.",
+                    "A group of people working together on a ship.",
+                    "A big treasure chest.",
+                    "A small boat."
+                ],
+                correct: 1,
+                explanation: "A crew is the team of sailors or pirates working on a ship."
+            },
+            {
+                id: 2,
+                type: "vocab",
+                question: "If a friend is 'Loyal', they are...",
+                options: [
+                    "Always helping and supporting you.",
+                    "Always angry and fighting.",
+                    "Very rich and powerful.",
+                    "Running away from danger."
+                ],
+                correct: 0,
+                explanation: "A loyal person stays with you and supports you, especially in difficult times."
+            },
+            {
+                id: 3,
+                type: "vocab",
+                question: "What is a 'Mutiny'?",
+                options: [
+                    "A party on a pirate ship.",
+                    "When the crew fights the captain to take control.",
+                    "A map that shows where the treasure is.",
+                    "When the ship sinks in a storm."
+                ],
+                correct: 1,
+                explanation: "Mutiny is a rebellion where the crew tries to overthrow their leader/captain."
+            },
+            {
+                id: 4,
+                type: "grammar",
+                question: "Complete the introduction: 'I _____ Monkey D. Luffy.'",
+                options: [
+                    "am",
+                    "is",
+                    "are",
+                    "be"
+                ],
+                correct: 0,
+                explanation: "We use 'I am' (Present Simple) to introduce ourselves."
+            },
+            {
+                id: 5,
+                type: "grammar",
+                question: "Complete the future plan: 'I am _________ King of the Pirates!'",
+                options: [
+                    "go to be",
+                    "going be",
+                    "going to be",
+                    "will be"
+                ],
+                correct: 2,
+                explanation: "For strong intentions and dreams, we use 'am/is/are + going to + verb'."
+            },
+            {
+                id: 6,
+                type: "grammar",
+                question: "Which sentence shows a FUTURE plan?",
+                options: [
+                    "We are pirates.",
+                    "We find a lot of treasure.",
+                    "We are going to find the treasure.",
+                    "We liked the adventure."
+                ],
+                correct: 2,
+                explanation: "'Are going to find' expresses a plan for the future."
+            },
+            {
+                id: 7,
+                type: "vocab",
+                question: "To 'set sail' means to...",
+                options: [
+                    "Buy a new ship.",
+                    "Start a journey on a ship.",
+                    "Clean the ship's deck.",
+                    "Stop the ship."
+                ],
+                correct: 1,
+                explanation: "Setting sail is the action of leaving the port to begin a voyage."
+            },
+            {
+                id: 8,
+                type: "grammar",
+                question: "Complete the sentence: 'We _______ going to the Grand Line.'",
+                options: [
+                    "am",
+                    "is",
+                    "are",
+                    "was"
+                ],
+                correct: 2,
+                explanation: "With the pronoun 'We', the correct form of the verb To Be is 'are'."
+            },
+            {
+                id: 9,
+                type: "vocab",
+                question: "Complete: 'The Grand Line is a ________ place.'",
+                options: [
+                    "dangerous",
+                    "danger",
+                    "dangerously",
+                    "safe"
+                ],
+                correct: 0,
+                explanation: "'Dangerous' is the adjective meaning not safe. It describes the place."
+            },
+            {
+                id: 10,
+                type: "vocab",
+                question: "What does it mean if the Marines 'catch' the pirates?",
+                options: [
+                    "They give them money.",
+                    "They help them navigate.",
+                    "They capture them.",
+                    "They ignore them."
+                ],
+                correct: 2,
+                explanation: "To catch means to capture someone who is trying to escape."
+            },
+            {
+                id: 11,
+                type: "expression",
+                question: "If there is 'tension' in a group, people are feeling...",
+                options: [
+                    "Very relaxed and happy.",
+                    "Stressed, with possible conflict.",
+                    "Hungry for food.",
+                    "Sleepy and tired."
+                ],
+                correct: 1,
+                explanation: "Tension refers to mental or emotional strain, often before an argument."
+            },
+            {
+                id: 12,
+                type: "expression",
+                question: "What does it mean to 'stick together'?",
+                options: [
+                    "To use glue on a ship.",
+                    "To fight each other.",
+                    "To stay united and support each other.",
+                    "To run away in different directions."
+                ],
+                correct: 2,
+                explanation: "Friends and loyal crews 'stick together' through hard times."
+            },
+            {
+                id: 13,
+                type: "grammar",
+                question: "Complete: 'He ______ going to build a new ship.'",
+                options: [
+                    "am",
+                    "are",
+                    "is",
+                    "be"
+                ],
+                correct: 2,
+                explanation: "With the pronoun 'He', we use 'is' + going to."
+            },
+            {
+                id: 14,
+                type: "context",
+                question: "According to the trailer, what does Luffy NEED to find the treasure?",
+                options: [
+                    "A lot of money.",
+                    "A loyal crew.",
+                    "A magic sword.",
+                    "A crown."
+                ],
+                correct: 1,
+                explanation: "Luffy says: 'I'm setting sail... and I need a loyal crew.'"
+            },
+            {
+                id: 15,
+                type: "grammar",
+                question: "How do you make a negative 'Going to' sentence?",
+                options: [
+                    "I am not going to give up!",
+                    "I not going to give up!",
+                    "I don't going to give up!",
+                    "I am going not to give up!"
+                ],
+                correct: 0,
+                explanation: "Put 'not' directly after the verb To Be: 'I am NOT going to...'"
+            }
+        ];
+
+        // --- MAIN APP COMPONENT ---
+        function App() {
+            const [step, setStep] = useState('start'); // 'start', 'quiz', 'result'
+            const [currentQ, setCurrentQ] = useState(0);
+            const [score, setScore] = useState(0);
+            const [selectedOpt, setSelectedOpt] = useState(null);
+            const [showExplanation, setShowExplanation] = useState(false);
+
+            const startQuiz = () => {
+                setStep('quiz');
+                setCurrentQ(0);
+                setScore(0);
+            };
+
+            const handleOptionClick = (index) => {
+                if (selectedOpt !== null) return; 
+                setSelectedOpt(index);
+                setShowExplanation(true);
+
+                if (index === QUESTIONS[currentQ].correct) {
+                    setScore(s => s + 1);
+                }
+            };
+
+            const handleNext = () => {
+                if (currentQ < QUESTIONS.length - 1) {
+                    setCurrentQ(q => q + 1);
+                    setSelectedOpt(null);
+                    setShowExplanation(false);
+                } else {
+                    setStep('result');
+                }
+            };
+
+            const progress = ((currentQ) / QUESTIONS.length) * 100;
+
+            // --- VIEWS ---
+
+            if (step === 'start') {
+                return (
+                    <div className="flex flex-col items-center justify-center h-full p-6 text-center bg-[#020617] animate-pop relative">
+                        <div className="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-screen" style={{ backgroundImage: `url(${BG_OCEAN})` }}></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-[#020617]"></div>
+                        
+                        <div className="z-10 flex flex-col items-center">
+                            <div className="w-16 h-16 bg-yellow-500 text-black font-black text-4xl flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.5)] mb-8 rounded-lg transform rotate-3">W</div>
+                            <h1 className="text-3xl font-black mb-2 uppercase tracking-tight text-white">Pirate Mission</h1>
+                            <h2 className="text-xl text-yellow-500 font-bold mb-8 uppercase tracking-widest font-bebas">One Piece: Set Sail</h2>
+                            
+                            <div className="bg-[#0f172a]/90 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-10 w-full max-w-sm shadow-xl">
+                                <ul className="text-left text-gray-300 space-y-4 font-medium">
+                                    <li className="flex items-center gap-3"><Icon name="skull-crossbones" className="text-red-500"/> 15 Quick Challenges</li>
+                                    <li className="flex items-center gap-3"><Icon name="bolt" className="text-yellow-500"/> "Going to" Grammar Check</li>
+                                    <li className="flex items-center gap-3"><Icon name="anchor" className="text-blue-400"/> Scene Review at the end</li>
+                                </ul>
+                            </div>
+
+                            <button 
+                                onClick={startQuiz}
+                                className="w-full max-w-sm bg-yellow-500 hover:bg-yellow-400 text-black font-black text-xl py-4 rounded-xl shadow-[0_0_20px_rgba(250,204,21,0.4)] transition-transform active:scale-95 uppercase tracking-widest"
+                            >
+                                Start Adventure
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (step === 'result') {
+                const percentage = Math.round((score / QUESTIONS.length) * 100);
+                let message = "";
+                if (percentage >= 90) message = "PIRATE KING! 👑";
+                else if (percentage >= 70) message = "GREAT CREW! ⚓";
+                else if (percentage >= 50) message = "GOOD SAILOR! ⛵";
+                else message = "DON'T GIVE UP! 💪";
+
+                return (
+                    <div className="flex flex-col h-full bg-[#020617] animate-slideIn">
+                        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center pb-12">
+                            
+                            <Icon name="gem" size={64} className="text-yellow-400 mt-8 mb-4 drop-shadow-[0_0_30px_rgba(250,204,21,0.8)] animate-float" />
+                            <h1 className="text-4xl font-black mb-1 uppercase tracking-tight text-center font-bebas text-white">{message}</h1>
+                            <p className="text-gray-400 font-medium mb-8">Mission Complete</p>
+
+                            <div className="bg-[#0f172a] border border-blue-500/30 rounded-3xl p-8 w-full max-w-sm text-center mb-8 shadow-2xl relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500"></div>
+                                <p className="text-sm text-blue-400 font-bold uppercase tracking-widest mb-2">Final Bounty</p>
+                                <div className="text-6xl font-black text-white mb-2">{score} <span className="text-2xl text-gray-500">/ {QUESTIONS.length}</span></div>
+                                <p className="text-yellow-500 font-bold">{percentage}% Accuracy</p>
+                            </div>
+
+                            <div className="w-full max-w-sm mb-4">
+                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white"><Icon name="play-circle" className="text-yellow-500"/> Reward: Watch the Scene</h3>
+                                <div className="w-full aspect-video bg-black rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                                    <iframe 
+                                        className="w-full h-full" 
+                                        src={`https://www.youtube.com/embed/${YOUTUBE_ID}?rel=0&modestbranding=1`} 
+                                        frameBorder="0" 
+                                        allowFullScreen>
+                                    </iframe>
+                                </div>
+                            </div>
+                            
+                            <button 
+                                onClick={() => setStep('start')}
+                                className="w-full max-w-sm bg-[#1e293b] hover:bg-[#334155] text-white font-bold py-4 rounded-xl mt-4 transition-transform active:scale-95 uppercase tracking-wider"
+                            >
+                                Play Again
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- QUIZ VIEW ---
+            const question = QUESTIONS[currentQ];
+
+            return (
+                <div className="flex flex-col h-full bg-[#020617] relative">
+                    {/* Top Progress Bar */}
+                    <div className="w-full h-2 bg-[#0f172a]">
+                        <div 
+                            className="h-full bg-yellow-500 transition-all duration-500 shadow-[0_0_15px_rgba(250,204,21,0.8)]"
+                            style={{ width: `${progress}%` }}
+                        ></div>
+                    </div>
+
+                    {/* Header */}
+                    <div className="flex justify-between items-center p-4 border-b border-white/5 bg-[#0f172a]/50 backdrop-blur-md">
+                        <div className="text-gray-400 font-bold text-sm tracking-widest">Q {currentQ + 1} OF {QUESTIONS.length}</div>
+                        <div className="bg-[#1e293b] border border-white/10 px-3 py-1 rounded-full flex items-center gap-2 shadow-inner">
+                            <Icon name="star" size={12} className="text-yellow-500"/>
+                            <span className="text-white font-bold text-sm">{score}</span>
+                        </div>
+                    </div>
+
+                    {/* Question Area */}
+                    <div key={currentQ} className="flex-1 p-6 flex flex-col overflow-y-auto animate-slideIn pb-8">
+                        <span className="text-blue-400 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-1 bg-blue-900/30 w-max px-3 py-1 rounded-full border border-blue-500/30">
+                            <Icon name={question.type === 'vocab' ? 'book' : question.type === 'grammar' ? 'crosshairs' : question.type === 'expression' ? 'comment-dots' : 'ear-listen'} size={12} />
+                            {question.type} Check
+                        </span>
+                        <h2 className="text-2xl sm:text-3xl font-black leading-tight mb-8 text-white drop-shadow-md">
+                            {question.question}
+                        </h2>
+
+                        <div className="flex flex-col gap-3 w-full mt-auto mb-8">
+                            {question.options.map((opt, i) => {
+                                const isSelected = selectedOpt === i;
+                                const isCorrectAnswer = i === question.correct;
+                                
+                                let btnStyle = "bg-[#1e293b] border-white/5 hover:border-white/20 text-gray-200 shadow-sm";
+                                
+                                if (showExplanation) {
+                                    if (isCorrectAnswer) {
+                                        btnStyle = "bg-emerald-600/20 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]";
+                                    } else if (isSelected && !isCorrectAnswer) {
+                                        btnStyle = "bg-red-600/20 border-red-500 text-red-400 animate-shake";
+                                    } else {
+                                        btnStyle = "opacity-40 bg-[#1e293b] border-transparent text-gray-500";
+                                    }
+                                }
+
+                                return (
+                                    <button 
+                                        key={i}
+                                        onClick={() => handleOptionClick(i)}
+                                        className={`w-full text-left p-5 rounded-xl border-2 font-bold text-[15px] sm:text-lg transition-all duration-300 active:scale-[0.98] flex items-center justify-between ${btnStyle}`}
+                                    >
+                                        <span>{opt}</span>
+                                        {showExplanation && isCorrectAnswer && <Icon name="check" size={18} />}
+                                        {showExplanation && isSelected && !isCorrectAnswer && <Icon name="xmark" size={18} />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Explanation Box */}
+                        <div className={`transition-all duration-500 overflow-hidden ${showExplanation ? 'max-h-48 opacity-100 mb-6' : 'max-h-0 opacity-0'}`}>
+                            <div className="bg-[#0f172a] border border-yellow-500/30 border-l-4 border-l-yellow-500 rounded-lg p-4 shadow-lg">
+                                <p className="text-yellow-500 text-xs uppercase font-bold tracking-widest mb-1">Explanation</p>
+                                <p className="text-gray-200 text-sm font-medium leading-relaxed">{question.explanation}</p>
+                            </div>
+                        </div>
+
+                        {/* Next Button */}
+                        {showExplanation && (
+                            <button 
+                                onClick={handleNext}
+                                className="w-full bg-yellow-500 text-black font-black text-lg py-4 rounded-xl mt-auto shadow-[0_0_20px_rgba(250,204,21,0.4)] active:scale-95 transition-transform uppercase tracking-wider animate-pop"
+                            >
+                                {currentQ === QUESTIONS.length - 1 ? 'Finish Mission' : 'Next Question'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- RENDER APP ---
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
